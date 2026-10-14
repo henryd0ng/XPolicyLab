@@ -552,8 +552,8 @@ def decode_obs_images(obs):
     The policy server calls this before handing an observation to the model, so
     `update_obs` / `update_obs_batch` always receive plain RGB image arrays and
     no adapter has to decode anything. Values that are already decoded pass
-    through untouched, and only the color fields listed in OBS_IMAGE_KEYS are
-    visited — depth maps, intrinsics, extrinsics and shapes are left alone.
+    through untouched. Vision color fields listed in OBS_IMAGE_KEYS and optional
+    tactile rgb/reference_rgb are visited; depth, force and metadata stay intact.
 
     What the model receives is RGB, for either stored byte format, because
     `decode_image_bit` already resolved the difference. `model.py` must not swap
@@ -579,7 +579,7 @@ def decode_obs_images(obs):
 
     vision = obs.get("vision")
     if not isinstance(vision, dict):
-        return obs
+        vision = {}
 
     for camera_name, camera in vision.items():
         if isinstance(camera, dict):
@@ -591,6 +591,16 @@ def decode_obs_images(obs):
         elif isinstance(camera, _DECODABLE_TYPES):
             # Layout where vision/<camera> is the image itself.
             vision[camera_name] = _decode_obs_image(camera, camera_name, "color")
+
+    tactile = obs.get("tactile", {})
+    if isinstance(tactile, dict):
+        for sensor_name, sensor in tactile.items():
+            if isinstance(sensor, dict):
+                for image_key in ("rgb", "reference_rgb"):
+                    if sensor.get(image_key) is not None:
+                        sensor[image_key] = _decode_obs_image(
+                            sensor[image_key], f"tactile.{sensor_name}", image_key
+                        )
 
     return obs
 

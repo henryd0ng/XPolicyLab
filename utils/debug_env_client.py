@@ -141,7 +141,7 @@ class TestEnv:
         for i, prefix in enumerate(prefixes):
             state[f"{prefix}arm_joint_state"] = np.zeros(arm_dims[i], dtype=np.float32)
             state[f"{prefix}ee_joint_state"] = np.zeros(ee_dims[i], dtype=np.float32)
-            state[f"{prefix}ee_pose"] = np.ones(7, dtype=np.float32)
+            state[f"{prefix}ee_pose"] = np.array([0, 0, 0, 1, 0, 0, 0], dtype=np.float32)
             state[f"{prefix}tcp_pose"] = np.zeros(7, dtype=np.float32)
             state[f"{prefix}delta_ee_pose"] = np.zeros(7, dtype=np.float32)
 
